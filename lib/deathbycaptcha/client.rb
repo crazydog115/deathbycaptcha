@@ -88,11 +88,15 @@ module DeathByCaptcha
       raise DeathByCaptcha::InvalidCaptcha if raw64.to_s.empty?
 
       _captcha = self.upload(raw64)
+      captcha_id = _captcha.id
+
       while _captcha.text.to_s.empty?
         sleep(self.polling)
         _captcha = self.captcha(_captcha.id)
         raise DeathByCaptcha::Timeout if (Time.now - started_at) > self.timeout
       end
+
+      return DeathByCaptcha::Captcha.new(id: captcha_id) if _captcha.id.nil?
 
       raise DeathByCaptcha::IncorrectSolution if !_captcha.is_correct
 
